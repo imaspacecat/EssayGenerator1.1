@@ -5,12 +5,12 @@ import java.util.regex.*;
 
 class Main
 {
-    public static void main(String[] args)
-    {
+    public static void main(String[] args){
 
         String articleName = "Cookie";
         Wiki wiki = new Wiki.Builder().build();
         String content = wiki.getPageText(articleName);
+
 
         /**
          iterate over all indexes less then the split array size of the content [i]
@@ -25,13 +25,16 @@ class Main
         Pattern pattern = Pattern.compile("==(.*?)==");
         Matcher matcher = pattern.matcher(content);
 
+        /**
+         to-do:
+         - make it not include ==citations==, ==further reading==, ==external links==, ==general sources==...
+         - make sub categories connected somehow to larger categories so when generating the essay it can add those as smaller parts of the main body paragraph. E.g. Maintenance and Repair -> Maintenance, Repair
+         **/
         int count = 0;
         while (matcher.find()) {
             count++;
         }
         String[] titles = new String[count];
-
-//      System.out.println("Group count: " + count);
 
         matcher.reset();
 
@@ -46,24 +49,22 @@ class Main
             categories.add(i, (new Categories(titles[i-1], splitArray[i])));
         }
 
+
         for (int i = 0; i < categories.size(); i++) {
+
+            categories.set(i, new Categories(categories.get(i).getTitle(), categories.get(i).getContent().replaceAll("\\[\\[File.*]]", "")));
+            categories.set(i, new Categories(categories.get(i).getTitle(), clean("\\[\\[[^\\[\\[]*?([^|]*?)\\]\\]", categories.get(i).getContent()+"[[|]]")));
+            categories.set(i, new Categories(categories.get(i).getTitle(), clean("'''(.*?)'''", categories.get(i).getContent()+"''''''")));
+            categories.set(i, new Categories(categories.get(i).getTitle(), clean("''(.*?)''", categories.get(i).getContent()+"''''")));
+            categories.set(i, new Categories(categories.get(i).getTitle(), categories.get(i).getContent().replaceAll("(?s)<ref.*?</ref>", "")));
+            categories.set(i, new Categories(categories.get(i).getTitle(), categories.get(i).getContent().replaceAll("(?s)<ref.*?/>", "")));
+            categories.set(i, new Categories(categories.get(i).getTitle(), categories.get(i).getContent().replaceAll("(?s)<gallery.*?</gallery>", "")));
+
+            categories.set(i, new Categories(categories.get(i).getTitle(), categories.get(i).getContent().replaceAll("\\{\\{.*?}}", "")));
+
+
             System.out.println("index: " + i + ", title: " + categories.get(i).getTitle() + "\ncontent: \n" + categories.get(i).getContent());
         }
-
-//        This is the cleanup code for the content. Need to apply it to the arrayList content to clean it up.
-
-        String cleanContent=content.replaceAll("\\[\\[File.*]]", "");
-
-        cleanContent = clean("\\[\\[[^\\[\\[]*?([^|]*?)\\]\\]", cleanContent+"[[|]]");
-        cleanContent=clean("'''(.*?)'''", cleanContent+"''''''");
-        cleanContent=clean("''(.*?)''", cleanContent+"''''''");
-        cleanContent=cleanContent.replaceAll("<ref.*?</ref>", "");
-        cleanContent=cleanContent.replaceAll("<ref.*?/>", "");
-
-        cleanContent=cleanContent.replaceAll("\\{\\{.*?}}", "");
-
-        System.out.println("Edited:   " + cleanContent);
-
 
     }
 
