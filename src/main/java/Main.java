@@ -11,11 +11,12 @@ class Main
 
     public static void main(String[] args){
 
-        String articleName = "Cookie";
+        String articleName = "Water";
         Wiki wiki = new Wiki.Builder().build();
         String content = wiki.getPageText(articleName);
 
-
+        //====x====
+        //==x==
         /*
          iterate over all indexes less than the split array size of the content [i]
          set the categories' title param to the capture group of the regex
@@ -24,9 +25,9 @@ class Main
         int size = 50;
         ArrayList<Categories> categories = new ArrayList<>(size);
 
-        String[] splitArray = content.split("==.*?==");
+        String[] splitArray = content.split("====.*?====|===.*?===|==.*?==");
 
-        Pattern pattern = Pattern.compile("==(.*?)==");
+        Pattern pattern = Pattern.compile("====(.*?)====|===(.*?)===|==(.*?)==");
         Matcher matcher = pattern.matcher(content);
 
         /*
@@ -34,6 +35,7 @@ class Main
          - make sub categories connected somehow to larger categories so when generating the essay it can add those as smaller parts of the main body paragraph. E.g. Maintenance and Repair -> Maintenance, Repair
          - fix extra pair of = when cleaning categories (because of sub categories)
          - fix ====x==== subcategories being removed
+         ==x== ===x=== ====x====
          */
         int count = 0;
         while (matcher.find()) {
@@ -45,10 +47,9 @@ class Main
 
         int index = 0;
         while (matcher.find()) {
-            titles[index] = matcher.group();
-            titles[index] = clean("==(.*?)==", titles[index]);
-            titles[index] = titles[index].trim();
-            index++;
+            String str = matcher.group();
+            str = str.replace("=", "");
+            titles[index++] = str.trim();
         }
 
         categories.add(0, (new Categories(articleName, splitArray[0])));
@@ -58,31 +59,29 @@ class Main
 
         ArrayList<Categories> cleanCategories = new ArrayList<>(size);
 
-        //fix all the bugs in this part including miss alignment between title and content
-        int skipped = 0;
+
         for(int i = 0; i < categories.size(); i++){
+            String title = categories.get(i).getTitle().toLowerCase();
             if(
-                    categories.get(i).getTitle().equalsIgnoreCase("citations") ||
-                            categories.get(i).getTitle().equalsIgnoreCase("further reading") ||
-                            categories.get(i).getTitle().equalsIgnoreCase("external links") ||
-                            categories.get(i).getTitle().equalsIgnoreCase("general sources") ||
-                            categories.get(i).getTitle().equalsIgnoreCase("notes") ||
-                            categories.get(i).getTitle().equalsIgnoreCase("references") ||
-                            categories.get(i).getTitle().equalsIgnoreCase("gallery") ||
-                            categories.get(i).getTitle().equalsIgnoreCase("see also"))
+                    title.equals("citations") ||
+                    title.equals("further reading") ||
+                    title.equals("external links") ||
+                    title.equals("general sources") ||
+                    title.equals("notes") ||
+                    title.equals("references") ||
+                    title.equals("gallery") ||
+                    title.equals("see also"))
             {
-                skipped++;
                 continue;
             }
 
 
-            cleanCategories.add(i-skipped, new Categories(categories.get(i).getTitle(), categories.get(i).getContent()));
-
+            cleanCategories.add(new Categories(title, categories.get(i).getContent()));
 
 
         }
 
-
+    // ==x== ===x=== ====x====
         for (int i = 0; i < cleanCategories.size(); i++) {
             String res = cleanCategories.get(i).getContent();
             res = res.replaceAll("\\[\\[File.*]]", "");
@@ -96,6 +95,8 @@ class Main
             res = res.replaceAll("(?s)<!--.*-->", "");
 
             cleanCategories.set(i, new Categories(cleanCategories.get(i).getTitle(), res));
+
+            System.out.println("title " + i + " is " + cleanCategories.get(i).getTitle());
 
         }
 
