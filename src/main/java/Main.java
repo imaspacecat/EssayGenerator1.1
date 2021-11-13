@@ -1,9 +1,9 @@
 import org.fastily.jwiki.core.*;
 
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.regex.*;
 import java.util.Random;
+import java.util.Scanner;
 
 class Main
 {
@@ -11,9 +11,32 @@ class Main
 
     public static void main(String[] args){
 
-        String articleName = "Water";
+        System.out.println("What topic do you want your essay about?");
+        Scanner scanner = new Scanner(System.in);
+
+        String initialArticle = scanner.nextLine();
+
+//        String articleName = "Water";
         Wiki wiki = new Wiki.Builder().build();
+
+        String[] articleList = wiki.search(initialArticle, 6).toString().split(",");
+
+        for(int i = 0; i < articleList.length; i++){
+            String art = articleList[i];
+
+            System.out.println(art);
+            art = art.replaceAll("\\[", "");
+            articleList[i] = art.replaceAll("]", "");
+        }
+
+        System.out.println("Select an article (enter a number between 1 and 6)");
+
+        int articleIndex = scanner.nextInt();
+
+        String articleName = articleList[articleIndex-1];
+
         String content = wiki.getPageText(articleName);
+
 
         //====x====
         //==x==
@@ -96,7 +119,7 @@ class Main
 
             cleanCategories.set(i, new Categories(cleanCategories.get(i).getTitle(), res));
 
-            System.out.println("title " + i + " is " + cleanCategories.get(i).getTitle());
+//            System.out.println("title " + i + " is " + cleanCategories.get(i).getTitle());
 
         }
 
@@ -104,6 +127,14 @@ class Main
         Random random = new Random();
         int randIndex = random.nextInt(cleanCategories.size() - 1);
         String essay = topicSentence(articleName, cleanCategories.get(randIndex).getTitle().toLowerCase()) + cleanCategories.get(randIndex).getContent();
+
+        randIndex = random.nextInt(cleanCategories.size() - 1);
+        essay = essay + topicSentence(articleName, cleanCategories.get(randIndex).getTitle().toLowerCase()) + cleanCategories.get(randIndex).getContent();
+
+        randIndex = random.nextInt(cleanCategories.size() - 1);
+        essay = essay + topicSentence(articleName, cleanCategories.get(randIndex).getTitle().toLowerCase()) + cleanCategories.get(randIndex).getContent() + conclusionSentence(articleName);
+
+        essay = essay.replace("\n\n", "\n");
 
         System.out.println(essay);
 
